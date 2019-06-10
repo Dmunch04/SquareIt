@@ -1,0 +1,20 @@
+{
+  "Name": "TestMod",
+  "Version": "0.0.1",
+  "Author": "Munchii",
+  "Description": "A simple test mod",
+
+  "Data": {
+    "Player": {
+      "X": 500,
+      "Y": 500,
+      "Width": 100,
+      "Height": 100,
+      "Color": [75, 255, 75]
+    },
+
+    "Messages": {
+      "GameOver": "Whoops! Game over!"
+    }
+  }
+}
