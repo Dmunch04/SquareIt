@@ -5,6 +5,42 @@
   "Description": "A simple test mod",
 
   "Data": {
+    "Window": {
+      "Color": [200, 200, 200]
+    },
+
+    "Game": {
+      "Enemies": [
+        {
+          "X": 100,
+          "Y": 400,
+          "Width": 100,
+          "Height": 100
+        }
+      ],
+
+      "Bombs": [
+        {
+          "X": 400,
+          "Y": 100,
+          "Width": 100,
+          "Height": 100
+        }
+      ],
+
+      "Notifications": [
+        {
+          "Text": "Hello, World!",
+          "Duration": 5000
+        },
+
+        {
+          "Text": "Ya Yeet",
+          "Duration": 5000
+        }
+      ]
+    },
+
     "Player": {
       "X": 500,
       "Y": 500,

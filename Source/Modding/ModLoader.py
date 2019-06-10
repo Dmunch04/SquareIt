@@ -8,6 +8,8 @@ class Loader:
         self.Data = {}
 
     def Load (self, _Mod):
+        """ Prepare the mod """
+
         with open (_Mod, 'r') as ModFile:
             ModData = json.loads (ModFile.read ())
 
@@ -34,17 +36,71 @@ class Loader:
         return Mod
 
     def Unload (self, _Mod):
+        """ Remove the mod and it's data """
+
         if _Mod in self.Mods:
             del self.Mods[self.Mods.index (_Mod)]
 
             self.Data[_Mod] = {}
 
     def SetData (self, _Object):
-        # Load mods
+        """ Apply the mods data to the game """
+
+        NotificationsToAdd = {}
+
         for Mod in self.Data:
             Data = self.Data[Mod]
 
             if Data:
+                WindowSettings = Data.get ('Window', {})
+                if WindowSettings:
+                    Color = WindowSettings.get ('Color', _Object.Window.BackgroundColor)
+
+                    _Object.Window.BackgroundColor = Color
+
+                GameSettings = Data.get ('Game', {})
+                if GameSettings:
+                    Enemies = GameSettings.get ('Enemies', [])
+                    if Enemies:
+                        for Enemy in Enemies:
+                            X = Enemy.get ('X', 0)
+                            Y = Enemy.get ('Y', 0)
+                            Width = Enemy.get ('Width', 50)
+                            Height = Enemy.get ('Height', 50)
+
+                            _Object.AddEnemy (
+                                X,
+                                Y,
+                                Width,
+                                Height
+                            )
+
+                    Bombs = GameSettings.get ('Bombs', [])
+                    if Bombs:
+                        for Bomb in Bombs:
+                            X = Bomb.get ('X', 0)
+                            Y = Bomb.get ('Y', 0)
+                            Width = Bomb.get ('Width', 50)
+                            Height = Bomb.get ('Height', 50)
+
+                            _Object.AddBomb (
+                                X,
+                                Y,
+                                Width,
+                                Height
+                            )
+
+                    Notifications = GameSettings.get ('Notifications', [])
+                    if Notifications:
+                        for Notification in Notifications:
+                            Text = Notification.get ('Text', 'None')
+                            Duration = Notification.get ('Duration', 1)
+
+                            NotificationsToAdd[str (len (NotificationsToAdd) + 1)] = {
+                                'Text': Text,
+                                'Duration': Duration
+                            }
+
                 PlayerSettings = Data.get ('Player', {})
                 if PlayerSettings:
                     X = PlayerSettings.get ('X', _Object.Player.X)
@@ -75,3 +131,13 @@ class Loader:
                     # Duration (Frames)
                     5000
                 )
+
+                for Notification in NotificationsToAdd:
+                    Notification = NotificationsToAdd[Notification]
+
+                    _Object.AddNotification (
+                        # Text
+                        str (Notification['Text']),
+                        # Duration (Frames)
+                        int (Notification['Duration'])
+                    )

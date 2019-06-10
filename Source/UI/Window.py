@@ -17,6 +17,8 @@ class Window:
         self.FontColor = (30, 30, 30)
 
     def DrawObjects (self, _Screen, _Objects):
+        """ Draw all the given objects """
+
         for Object in _Objects:
             pygame.draw.rect (
                 _Screen,
@@ -29,31 +31,32 @@ class Window:
                 )
             )
 
-    def DrawNotifications (self, _Object):
-        # Show notifications
-        for Notification in list (_Object.Notifications):
-            ID = Notification
-            Notification = _Object.Notifications[Notification]
+    def DrawNotification (self, _Object):
+        """ Show the first notification """
 
-            if Notification['Duration'] <= 0:
-                del _Object.Notifications[ID]
+        Notifications = list (_Object.Notifications)
+        Notification = Notifications[0]
 
-                continue
+        ID = Notification
+        Notification = _Object.Notifications[Notification]
 
-            Text = self.FontRegular.render (
-                Notification["Text"],
-                True,
-                self.FontColor
-            )
+        if Notification['Duration'] <= 0:
+            del _Object.Notifications[ID]
 
-            _Object.Screen.blit (
-                Text,
-                (self.Width - (len (Notification['Text']) * 10), self.Height - 50)
-            )
+            return
 
-            _Object.Notifications[ID]['Duration'] -= 1
+        Text = self.FontRegular.render (
+            Notification["Text"],
+            True,
+            self.FontColor
+        )
+
+        _Object.Screen.blit (
+            Text,
+            (self.Width - (len (Notification['Text']) * 10), self.Height - 50)
+        )
+
+        _Object.Notifications[ID]['Duration'] -= 1
 
     def Run (self):
-        #print (self.Title, self.Width, self.Height)
-
         return self.Window

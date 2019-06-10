@@ -1,5 +1,9 @@
-import pygame
+# We do this here, to disable the annoying pygame welcome message
+import contextlib
+with contextlib.redirect_stdout (None):
+    import pygame
 
+# File imports
 from UI import Window
 from Helpers import Collision
 from Modding import ModLoader
@@ -22,12 +26,16 @@ class Game:
         }
 
     def AddNotification (self, _Text, _Duration):
+        """ Add a notification the the waiting list """
+
         self.Notifications[str (len (self.Notifications) + 1)] = {
             'Text': _Text,
             'Duration': _Duration
         }
 
     def AddEnemy (self, _X, _Y, _Width, _Height):
+        """ Add an enemy to the screen """
+
         self.Enemies.append (
             Enemy.Enemy (
                 len (self.Enemies) + 1,
@@ -39,9 +47,13 @@ class Game:
         )
 
     def RemoveEnemy (self, _ID):
+        """ Remove an enemy by it's ID """
+
         del self.Enemies[_ID - 1]
 
     def AddBomb (self, _X, _Y, _Width, _Height):
+        """ Add a bomb to the screen """
+
         self.Bombs.append (
             Bomb.Bomb (
                 len (self.Bombs) + 1,
@@ -53,6 +65,8 @@ class Game:
         )
 
     def RemoveBomb (self, _ID):
+        """ Remove a bomb by it's ID """
+
         del self.Bombs[_ID - 1]
 
     def Start (self):
@@ -107,7 +121,8 @@ class Game:
 
             if self.Notifications:
                 # Draw the notifications
-                self.Window.DrawNotifications (self)
+                #self.Window.DrawNotifications (self)
+                self.Window.DrawNotification (self)
 
             # Create a new objects list, so we can remove the player from it
             Objects = self.Objects
