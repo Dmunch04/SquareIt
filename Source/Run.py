@@ -12,6 +12,7 @@ def Run ():
     # Load mods
     # -- Path
     TestGame.ModLoader.Load ('Game Mods/TestMod.json')
+    TestGame.LoadExtension ('Game Mods.Plugin')
 
     # Remove game objects
     # -- ID
