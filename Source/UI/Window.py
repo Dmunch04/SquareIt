@@ -16,6 +16,35 @@ class Window:
         self.FontRegular = pygame.font.Font ('Assets/Fonts/Roboto-Regular.ttf', 18)
         self.FontColor = (30, 30, 30)
 
+    def UpdateTitle (self, _Title):
+        """ Update the windows title """
+
+        self.Title = str (_Title)
+
+        pygame.display.set_caption (self.Title)
+
+    def UpdateSize (self, _Width, _Height):
+        """ Update the windows width and height """
+
+        self.Width = int (_Width)
+        self.Height = int (_Height)
+
+        self.Window = pygame.display.set_mode ((self.Width, self.Height))
+
+    def UpdateWidth (self, _Width):
+        """ Update the windows width """
+
+        self.Width = int (_Width)
+
+        self.Window = pygame.display.set_mode ((self.Width, self.Height))
+
+    def UpdateHeight (self, _Height):
+        """ Update the windows height """
+
+        self.Height = int (_Height)
+
+        self.Window = pygame.display.set_mode ((self.Width, self.Height))
+
     def DrawObjects (self, _Screen, _Objects):
         """ Draw all the given objects """
 

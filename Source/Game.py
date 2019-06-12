@@ -25,9 +25,11 @@ class Game:
         self.Extensions = []
         self.Plugins = []
         self.CallableEvents = [
+            'EventInit'
             'EventStart',
             'EventEnd',
-            'EventGameOver'
+            'EventGameOver',
+            'EventFrame'
         ]
 
         self.Notifications = {}
@@ -36,6 +38,8 @@ class Game:
         }
 
     def Restart (self):
+        """ Restarts the game graphics """
+
         pass
 
     def LoadExtension (self, _Path):
@@ -52,6 +56,9 @@ class Game:
         """ Adds a plugin class to the games plugins """
 
         self.Plugins.append (_Class)
+
+        # Call the init event in all plugins
+        Plugin.CallPluginFunctions (self.Plugins, 'EventInit')
 
     def AddNotification (self, _Text, _Duration, _Priority = False):
         """ Add a notification the the waiting list """
@@ -169,6 +176,9 @@ class Game:
 
             # Reset background (neccessary)
             self.Screen.fill (self.Window.BackgroundColor)
+
+            # Call the frame event in all plugins
+            Plugin.CallPluginFunctions (self.Plugins, 'EventFrame')
 
             # Fill up the objects list
             self.Objects = self.Enemies + self.Bombs

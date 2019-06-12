@@ -2,8 +2,13 @@ class MyPlugin:
     def __init__ (self, Game):
         self.Game = Game
 
+    def EventInit (self):
+        self.Game.Window.UpdateWidth (1280)
+
+        print ('Init')
+
     def EventStart (self):
-        print ('Start')
+        print ('Start', self.Game.Window.Width)
 
         self.Game.AddNotification (
             'Game has started',
