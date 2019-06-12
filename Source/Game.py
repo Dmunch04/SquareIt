@@ -21,6 +21,8 @@ class Game:
         self.Objects = []
 
         self.Screen = None
+        self.Run = True
+        self.DoRestart = True
 
         self.Extensions = []
         self.Plugins = []
@@ -28,7 +30,9 @@ class Game:
             'EventInit'
             'EventStart',
             'EventEnd',
+            'EventCollision',
             'EventGameOver',
+            'EventRestart',
             'EventFrame'
         ]
 
@@ -40,21 +44,36 @@ class Game:
     def Restart (self):
         """ Restarts the game graphics """
 
-        pass
+        # Reset the players position
+        self.Player.X = self.Player.OriginalX
+        self.Player.Y = self.Player.OriginalY
+
+        # Loop through all objects, and reset them
+        for Object in self.Objects:
+            Object.X = Object.OriginalX
+            Object.Y = Object.OriginalY
+
+        # Call the restart event in all plugins
+        Plugin.CallPluginFunctions (self.Plugins, 'EventRestart')
 
     def LoadExtension (self, _Path):
         """ Loads an extension file """
 
+        # Import the extension file
         Extension = importlib.import_module (_Path)
 
+        # Check if there's a setup function in that file
         if 'Setup' in dir (Extension):
+            # If there is, run it
             Extension.Setup (self)
 
+        # Add the extension to the extension list
         self.Extensions.append (Extension)
 
     def AddPlugin (self, _Class):
         """ Adds a plugin class to the games plugins """
 
+        # Add the plugin to the plugin list
         self.Plugins.append (_Class)
 
         # Call the init event in all plugins
@@ -63,18 +82,24 @@ class Game:
     def AddNotification (self, _Text, _Duration, _Priority = False):
         """ Add a notification the the waiting list """
 
+        # Check if it's a priority notification
         if _Priority:
+            # Create a new notification
             Notifications = {}
             Notifications['Died'] = {
                 'Text': _Text,
                 'Duration': _Duration
             }
 
+            # This makes the new notification as the number one notification
             Notifications.update (self.Notifications)
 
+            # Then set our notifications to the new notifications list
             self.Notifications = Notifications
 
+        # It's not ..
         else:
+            # Add a new notification to the notification list
             self.Notifications[str (len (self.Notifications) + 1)] = {
                 'Text': _Text,
                 'Duration': _Duration
@@ -83,6 +108,7 @@ class Game:
     def AddEnemy (self, _X, _Y, _Width, _Height):
         """ Add an enemy to the screen """
 
+        # Appends a new enemy object
         self.Enemies.append (
             Enemy.Enemy (
                 len (self.Enemies) + 1,
@@ -96,11 +122,13 @@ class Game:
     def RemoveEnemy (self, _ID):
         """ Remove an enemy by it's ID """
 
+        # Removes the enemy at that ID
         del self.Enemies[_ID - 1]
 
     def AddBomb (self, _X, _Y, _Width, _Height):
         """ Add a bomb to the screen """
 
+        # Appends a new bomb object
         self.Bombs.append (
             Bomb.Bomb (
                 len (self.Bombs) + 1,
@@ -114,6 +142,7 @@ class Game:
     def RemoveBomb (self, _ID):
         """ Remove a bomb by it's ID """
 
+        # Removes the bomb at that ID
         del self.Bombs[_ID - 1]
 
     def Start (self):
@@ -130,18 +159,27 @@ class Game:
             # Use the mods data
             self.ModLoader.SetData (self)
 
-        Run = True
+        while self.Run:
+            IsHitObject, Object = Collision.CheckCollisions (self.Player, self.Objects)
+            IsHitWall, Wall = Collision.CheckWallCollision (self.Player, self.Window.Width, self.Window.Height)
 
-        while Run:
+            if IsHitObject or IsHitWall:
+                # Call the collision event in all plugins
+                Plugin.CallPluginFunctions (self.Plugins, 'EventCollision', Object if Object else Wall)
+
             # Loop through all pygames events
             for Event in pygame.event.get ():
                 # If we've hit the close button ...
                 if Event.type == pygame.QUIT:
                     # ... Stop the loop
-                    Run = False
+                    self.Run = False
 
                 # Movement / Keyboard intereaction
                 elif Event.type == pygame.KEYDOWN:
+                    # Create these variables, so we can undo the movement
+                    OldX = self.Player.X
+                    OldY = self.Player.Y
+
                     # Move left
                     if Event.key == pygame.K_LEFT:
                         self.Player.X -= self.Player.Speed
@@ -174,7 +212,16 @@ class Game:
                         if self.Player.Y > self.Window.Height - self.Player.Height:
                             self.Player.Y = self.Window.Height - self.Player.Height
 
-            # Reset background (neccessary)
+                    # Check if we've hit a bad thing
+                    IsHit, Object = Collision.CheckCollisions (self.Player, self.Objects)
+
+                    # If we hit a bad thing
+                    if IsHit:
+                        # Set the players x and y, back to what it was before doing movement
+                        self.Player.X = OldX
+                        self.Player.Y = OldY
+
+            # Reset background (necessary)
             self.Screen.fill (self.Window.BackgroundColor)
 
             # Call the frame event in all plugins
@@ -195,26 +242,17 @@ class Game:
             Objects = self.Objects
             Objects.remove (self.Player)
 
-            # Collision check
-            for Object in Objects:
-                # Check if we've hit something
-                IsHit = Collision.CheckCollision (self.Player, Object)
+            # Check if we've hit something
+            IsHit, Object = Collision.CheckCollisions (self.Player, Objects)
 
-                # We've hit a bad thing! We die
-                if IsHit:
-                    # Call the death event in all plugins
-                    Plugin.CallPluginFunctions (self.Plugins, 'EventGameOver')
+            # We've hit a bad thing! We die
+            if IsHit:
+                # Call the death event in all plugins
+                Plugin.CallPluginFunctions (self.Plugins, 'EventGameOver')
 
-                    # We actually shouldn't do anything here, and just let
-                    # the plugins handle what should be done. But we will
-                    # restart the game ofc.
-                    """
-                    # Print the death message
-                    print (self.Messages['GameOver'])
-
-                    # Stop the loop
-                    Run = False
-                    """
+                # Check if we wanna do a restart
+                if self.DoRestart:
+                    # Call the restart function, to restart the graphics/objects
                     self.Restart ()
 
             # Update the display

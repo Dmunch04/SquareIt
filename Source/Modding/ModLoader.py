@@ -112,6 +112,8 @@ class Loader:
 
                     _Object.Player.X = int (X)
                     _Object.Player.Y = int (Y)
+                    _Object.Player.OriginalX = int (X)
+                    _Object.Player.OriginalY = int (Y)
                     _Object.Player.Width = int (Width)
                     _Object.Player.Height = int (Height)
                     _Object.Player.Speed = int (Speed)

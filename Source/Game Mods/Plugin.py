@@ -5,6 +5,8 @@ class MyPlugin:
     def EventInit (self):
         self.Game.Window.UpdateWidth (1280)
 
+        #self.Game.DoRestart = False
+
         print ('Init')
 
     def EventStart (self):
@@ -23,6 +25,9 @@ class MyPlugin:
             1000,
             _Priority = True
         )
+
+    def EventCollision (self, _Object):
+        print (f'HIT: {_Object}!')
 
     def EventEnd (self):
         print ('End')
