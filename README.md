@@ -14,11 +14,21 @@ Then you just run:
 
 <br>
 
+## Screenshot
+
+Here's a screenshot of how the game looks so far. The screen shot is a modded
+version. The mod file / config file, can be found in: `Source/Game Mods/Test Mod.json`.
+
+![Screenshot](https://raw.githubusercontent.com/Dmunch04/SquareIt/master/Ressources/Screenshot.png)
+
+<br>
+
 ## Requirements
 
 SquareIt uses:
 - json
 - pygame
+- importlib
 
 <br>
 
