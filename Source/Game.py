@@ -5,6 +5,7 @@ with contextlib.redirect_stdout (None):
 
 # Module imports
 import importlib
+from DavesLogger import Logs
 
 # File imports
 from UI import Window
@@ -75,7 +76,7 @@ class Game:
                 the plugins.
     """
 
-    def __init__ (self):
+    def __init__ (self, Debug = False, DoRestart = True, Tick = 60):
         self.Window = Window ('Game', 800, 600)
         self.ModLoader = Loader ()
         self.Player = Player (0, 0, 50, 50)
@@ -83,10 +84,11 @@ class Game:
         self.Bombs = Collection (Bomb)
         self.Objects = []
 
+        self.Debug = Debug
         self.Screen = None
         self.Run = True
-        self.DoRestart = True
-        self.Tick = 60
+        self.DoRestart = DoRestart
+        self.Tick = Tick
 
         self.Extensions = []
         self.Plugins = []
@@ -115,11 +117,17 @@ class Game:
 
         # Loop through all objects, and reset them
         for Object in self.Objects:
+            # Set the x and y to the original x and y
             Object.X = Object.OriginalX
             Object.Y = Object.OriginalY
 
         # Call the restart event in all plugins
         CallPluginFunctions (self.Plugins, 'EventRestart')
+
+        # Check if we wanna debug
+        if self.Debug:
+            # Then send a message to the console
+            Logs.Debug ('Graphics reset!')
 
     def LoadConfig (self, _Path):
         """ Loads a JSON config file """
@@ -214,7 +222,7 @@ class Game:
         """ Remove a bomb by it's ID """
 
         # Removes the bomb at that ID
-        self.Bombs.Remove (_ID)
+        self.Bombs.RemoveIndex (_ID)
 
     def Start (self):
         """ Run the game """
@@ -225,6 +233,11 @@ class Game:
 
         # Call the start event in all plugins
         CallPluginFunctions (self.Plugins, 'EventStart')
+
+        # Check if we wanna debug
+        if self.Debug:
+            # Then send a message to the console
+            Logs.Server ('Game window is initialized!')
 
         # Create the time and frame time variable
         Time = 0
@@ -246,6 +259,10 @@ class Game:
                 # Reset the time and frame time
                 Time = 0
                 FrameTime = int (DeltaTime.get_fps () // 2)
+
+            # Create these variables so we can use them the whole frame
+            DidCollide = False
+            CollidedObject = None
 
             # Loop through all pygames events
             for Event in pygame.event.get ():
@@ -317,9 +334,19 @@ class Game:
                         # Call the collision event in all plugins, for this object
                         CallPluginFunctions (self.Plugins, 'EventCollision', Object)
 
+                        # Check if we wanna debug
+                        if self.Debug:
+                            # Then send a message to the console
+                            Logs.Debug (f'Collision; {Object.Name}!')
+
                         # Set the players x and y, back to what it was before doing movement
                         self.Player.X = OldX
                         self.Player.Y = OldY
+
+                        # Set this variable to true, so we know later on we hit something
+                        DidCollide = True
+                        # Set the object variable to the object we hit
+                        CollidedObject = Object
 
             # Reset background (necessary)
             self.Screen.fill (self.Window.BackgroundColor)
@@ -358,16 +385,18 @@ class Game:
             Objects = self.Objects
             Objects.remove (self.Player)
 
-            # Check if we've hit something
-            IsHit, Object = CheckCollisions (self.Player, Objects)
-
             # We've hit a bad thing!
-            if IsHit:
-                # Call the death event in all plugins
-                CallPluginFunctions (self.Plugins, 'EventGameOver')
-
+            if DidCollide:
                 # Check if we wanna do a restart
                 if self.DoRestart:
+                    # Check if we wanna debug
+                    if self.Debug:
+                        # Then send a message to the console
+                        Logs.Debug ('Player died')
+
+                    # Call the death event in all plugins
+                    CallPluginFunctions (self.Plugins, 'EventGameOver')
+
                     # Call the restart function, to restart the graphics/objects
                     self.Restart ()
 

@@ -5,7 +5,7 @@ class MyPlugin:
     def EventInit (self):
         self.Game.Window.SetWidth (1280)
 
-        #self.Game.DoRestart = False
+        self.Game.DoRestart = False
 
         print ('Init')
 

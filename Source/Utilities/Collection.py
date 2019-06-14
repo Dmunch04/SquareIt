@@ -72,9 +72,7 @@ class Collection (dict):
     def RemoveIndex (self, _Index):
         """ Removes an item from the collection, by it's id """
 
-        ID = _Index
-
-        del self[ID]
+        del self[_Index]
 
     def HasAttributes (self, _Object, **_Attributes):
         """ Checks if _Object has _Attributes """
@@ -119,9 +117,4 @@ class Collection (dict):
     def GetAll (self):
         """ Returns all the items in the collection as a list """
 
-        Items = []
-
-        for Item in self:
-            Items.append (self[Item])
-
-        return Items
+        return [self[Item] for Item in self]
