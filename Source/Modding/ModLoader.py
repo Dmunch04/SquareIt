@@ -25,7 +25,7 @@ class Loader:
         if Data:
             self.Data[Name] = Data
 
-        Mod = ModObject.Mod (
+        Mod = ModObject (
             Name,
             Version,
             Author,

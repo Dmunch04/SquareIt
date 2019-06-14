@@ -11,12 +11,14 @@ def Run ():
 
     # Load mods
     # -- Path
-    TestGame.ModLoader.Load ('Game Mods/TestMod.json')
+    #TestGame.ModLoader.Load ('Game Mods/TestMod.json')
+    TestGame.LoadConfig ('Game Mods/TestMod.json')
     TestGame.LoadExtension ('Game Mods.Plugin')
 
     # Remove game objects
     # -- ID
     #TestGame.RemoveEnemy (1)
+    #TestGame.RemoveEnemy (2)
 
     # Start/Run the game
     TestGame.Start ()

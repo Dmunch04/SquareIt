@@ -16,7 +16,7 @@ Then you just run:
 
 ## Screenshot
 
-Here's a screenshot of how the game looks so far. The screen shot is a modded
+Here's a screenshot of how the game looks so far. The screenshot is a modded
 version. The mod file / config file, can be found in: `Source/Game Mods/Test Mod.json`.
 
 ![Screenshot](https://raw.githubusercontent.com/Dmunch04/SquareIt/master/Ressources/Screenshot.png)

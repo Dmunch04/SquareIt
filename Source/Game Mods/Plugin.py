@@ -27,6 +27,14 @@ class MyPlugin:
         )
 
     def EventCollision (self, _Object):
+        if _Object.IsObstacle:
+            # It's an enemy/bomb
+            pass
+
+        else:
+            # It's a wall
+            pass
+
         print (f'HIT: {_Object}!')
 
     def EventEnd (self):

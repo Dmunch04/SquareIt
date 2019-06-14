@@ -3,13 +3,15 @@ import contextlib
 with contextlib.redirect_stdout (None):
     import pygame
 
+# Module imports
 import importlib
 
 # File imports
 from UI import Window
-from Helpers import Collision
-from Modding import ModLoader, Plugin
-from Objects import Bomb, Enemy, Player
+from Utilities import Collection
+from Objects import Bomb, Enemy, Player, Wall
+from Modding import Loader, CallPluginFunctions
+from Helpers import CheckWallCollision, CheckCollisions, CheckCollision
 
 class Game:
     """
@@ -35,6 +37,10 @@ class Game:
         Functions:
             - Restart -> None:
                 Restarts the game graphics.
+
+            - LoadConfig -> Path:
+                Loads a JSON config file. You need to put the full relative path
+                to the file!
 
             - LoadExtension -> Path:
                 Loads the extension at the path. Please not, that / should be .
@@ -70,11 +76,11 @@ class Game:
     """
 
     def __init__ (self):
-        self.Window = Window.Window ('Game', 800, 600)
-        self.ModLoader = ModLoader.Loader ()
-        self.Player = Player.Player (0, 0, 50, 50)
-        self.Enemies = []
-        self.Bombs = []
+        self.Window = Window ('Game', 800, 600)
+        self.ModLoader = Loader ()
+        self.Player = Player (0, 0, 50, 50)
+        self.Enemies = Collection (Enemy)
+        self.Bombs = Collection (Bomb)
         self.Objects = []
 
         self.Screen = None
@@ -95,7 +101,7 @@ class Game:
 
         self.Notifications = {}
         self.Messages = {
-            "GameOver": "You Died!"
+            'GameOver': 'You Died!'
         }
 
     def Restart (self):
@@ -111,7 +117,18 @@ class Game:
             Object.Y = Object.OriginalY
 
         # Call the restart event in all plugins
-        Plugin.CallPluginFunctions (self.Plugins, 'EventRestart')
+        CallPluginFunctions (self.Plugins, 'EventRestart')
+
+    def LoadConfig (self, _Path):
+        """ Loads a JSON config file """
+
+        # Load the file
+        self.ModLoader.Load (_Path)
+
+        # Check if there's any mod data
+        if self.ModLoader.Data:
+            # Use the mods data
+            self.ModLoader.SetData (self)
 
     def LoadExtension (self, _Path):
         """ Loads an extension file """
@@ -133,8 +150,9 @@ class Game:
         # Add the plugin to the plugin list
         self.Plugins.append (_Class)
 
-        # Call the init event in all plugins
-        Plugin.CallPluginFunctions (self.Plugins, 'EventInit')
+        # Call the init event in the plugin
+        if 'EventInit' in dir (_Class):
+            _Class.EventInit ()
 
     def AddNotification (self, _Text, _Duration, _Priority = False):
         """ Add a notification the the waiting list """
@@ -143,7 +161,7 @@ class Game:
         if _Priority:
             # Create a new notification
             Notifications = {}
-            Notifications['Died'] = {
+            Notifications[str (len (self.Notifications) + 1)] = {
                 'Text': _Text,
                 'Duration': _Duration
             }
@@ -166,8 +184,8 @@ class Game:
         """ Add an enemy to the screen """
 
         # Appends a new enemy object
-        self.Enemies.append (
-            Enemy.Enemy (
+        self.Enemies.Add (
+            Enemy (
                 len (self.Enemies) + 1,
                 _X,
                 _Y,
@@ -180,14 +198,14 @@ class Game:
         """ Remove an enemy by it's ID """
 
         # Removes the enemy at that ID
-        del self.Enemies[_ID - 1]
+        self.Enemies.RemoveIndex (_ID)
 
     def AddBomb (self, _X, _Y, _Width, _Height):
         """ Add a bomb to the screen """
 
         # Appends a new bomb object
-        self.Bombs.append (
-            Bomb.Bomb (
+        self.Bombs.Add (
+            Bomb (
                 len (self.Bombs) + 1,
                 _X,
                 _Y,
@@ -200,7 +218,7 @@ class Game:
         """ Remove a bomb by it's ID """
 
         # Removes the bomb at that ID
-        del self.Bombs[_ID - 1]
+        self.Bombs.Remove (_ID)
 
     def Start (self):
         """ Run the game """
@@ -209,21 +227,10 @@ class Game:
         self.Screen = self.Window.Run ()
 
         # Call the start event in all plugins
-        Plugin.CallPluginFunctions (self.Plugins, 'EventStart')
+        CallPluginFunctions (self.Plugins, 'EventStart')
 
-        # Check if there's any mod data
-        if self.ModLoader.Data:
-            # Use the mods data
-            self.ModLoader.SetData (self)
-
+        # Keep doing this, while the game is still running
         while self.Run:
-            IsHitObject, Object = Collision.CheckCollisions (self.Player, self.Objects)
-            IsHitWall, Wall = Collision.CheckWallCollision (self.Player, self.Window.Width, self.Window.Height)
-
-            if IsHitObject or IsHitWall:
-                # Call the collision event in all plugins
-                Plugin.CallPluginFunctions (self.Plugins, 'EventCollision', Object if Object else Wall)
-
             # Loop through all pygames events
             for Event in pygame.event.get ():
                 # If we've hit the close button ...
@@ -243,6 +250,10 @@ class Game:
 
                         # Make sure we don't get out of the screen
                         if self.Player.X < 0:
+                            # Call the collision event in all plugins, for this wall
+                            CallPluginFunctions (self.Plugins, 'EventCollision', Wall ('Left Wall', self.Window.Height))
+
+                            # Set the player's X to 0
                             self.Player.X = 0
 
                     # Move right
@@ -251,14 +262,23 @@ class Game:
 
                         # Make sure we don't get out of the screen
                         if self.Player.X > self.Window.Width - self.Player.Width:
+                            # Call the collision event in all plugins, for this wall
+                            CallPluginFunctions (self.Plugins, 'EventCollision', Wall ('Right Wall', self.Window.Height))
+
+                            # Set the player's X to the max width
                             self.Player.X = self.Window.Width - self.Player.Width
 
                     # Move up
                     elif Event.key == pygame.K_UP:
+                        # Call the collision event in all plugins, for this wall
                         self.Player.Y -= self.Player.Speed
 
                         # Make sure we don't get out of the screen
                         if self.Player.Y < 0:
+                            # Call the collision event in all plugins, for this wall
+                            CallPluginFunctions (self.Plugins, 'EventCollision', Wall ('Top Wall', self.Window.Width))
+
+                            # Set the player's Y to 0
                             self.Player.Y = 0
 
                     # Move up
@@ -267,13 +287,20 @@ class Game:
 
                         # Make sure we don't get out of the screen
                         if self.Player.Y > self.Window.Height - self.Player.Height:
+                            # Call the collision event in all plugins, for this wall
+                            CallPluginFunctions (self.Plugins, 'EventCollision', Wall ('Bottom Wall', self.Window.Width))
+
+                            # Set the player's Y to the max height
                             self.Player.Y = self.Window.Height - self.Player.Height
 
                     # Check if we've hit a bad thing
-                    IsHit, Object = Collision.CheckCollisions (self.Player, self.Objects)
+                    IsHit, Object = CheckCollisions (self.Player, self.Objects)
 
                     # If we hit a bad thing
                     if IsHit:
+                        # Call the collision event in all plugins, for this object
+                        CallPluginFunctions (self.Plugins, 'EventCollision', Object)
+
                         # Set the players x and y, back to what it was before doing movement
                         self.Player.X = OldX
                         self.Player.Y = OldY
@@ -282,10 +309,10 @@ class Game:
             self.Screen.fill (self.Window.BackgroundColor)
 
             # Call the frame event in all plugins
-            Plugin.CallPluginFunctions (self.Plugins, 'EventFrame')
+            CallPluginFunctions (self.Plugins, 'EventFrame')
 
             # Fill up the objects list
-            self.Objects = self.Enemies + self.Bombs
+            self.Objects = self.Enemies.GetAll () + self.Bombs.GetAll ()
             self.Objects.append (self.Player)
 
             # Draw all objects
@@ -300,12 +327,12 @@ class Game:
             Objects.remove (self.Player)
 
             # Check if we've hit something
-            IsHit, Object = Collision.CheckCollisions (self.Player, Objects)
+            IsHit, Object = CheckCollisions (self.Player, Objects)
 
             # We've hit a bad thing!
             if IsHit:
                 # Call the death event in all plugins
-                Plugin.CallPluginFunctions (self.Plugins, 'EventGameOver')
+                CallPluginFunctions (self.Plugins, 'EventGameOver')
 
                 # Check if we wanna do a restart
                 if self.DoRestart:
@@ -316,7 +343,7 @@ class Game:
             pygame.display.update ()
 
         # Call the end event in all plugins
-        Plugin.CallPluginFunctions (self.Plugins, 'EventEnd')
+        CallPluginFunctions (self.Plugins, 'EventEnd')
 
         # When the while loop is done, close the window
         pygame.quit ()

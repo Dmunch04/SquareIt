@@ -7,6 +7,8 @@ class Enemy:
         self.OriginalX = X
         self.OriginalY = Y
 
+        self.IsObstacle = True
+
         self.Width = Width
         self.Height = Height
 
