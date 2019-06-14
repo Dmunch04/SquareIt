@@ -99,7 +99,7 @@ class Window:
             )
         )
 
-        _Object.Notifications[ID].Duration -= 1
+        _Object.Notifications[ID].Decrease ()
 
     def Run (self):
         return self.Window

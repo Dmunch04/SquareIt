@@ -86,6 +86,7 @@ class Game:
         self.Screen = None
         self.Run = True
         self.DoRestart = True
+        self.Tick = 60
 
         self.Extensions = []
         self.Plugins = []
@@ -225,10 +226,26 @@ class Game:
         # Call the start event in all plugins
         CallPluginFunctions (self.Plugins, 'EventStart')
 
+        # Create the time and frame time variable
+        Time = 0
+        FrameTime = self.Tick // 2
+
         # Keep doing this, while the game is still running
         while self.Run:
             # Set the tick to 60
-            DeltaTime.tick (60)
+            DeltaTime.tick (self.Tick)
+
+            # Increase time with 1
+            Time += 1
+
+            # Check if time and frame time are the same
+            if Time == FrameTime:
+                # Call the fixed frame event in all plugins, for this wall
+                CallPluginFunctions (self.Plugins, 'EventFixedFrame')
+
+                # Reset the time and frame time
+                Time = 0
+                FrameTime = int (DeltaTime.get_fps () // 2)
 
             # Loop through all pygames events
             for Event in pygame.event.get ():

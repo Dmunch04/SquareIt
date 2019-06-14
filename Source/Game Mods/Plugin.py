@@ -10,6 +10,14 @@ class MyPlugin:
         print ('Init')
 
     def EventFrame (self):
+        """
+        Object = self.Game.Enemies.GetAll ()[0]
+
+        Object.Move ('d')
+        """
+        pass
+
+    def EventFixedFrame (self):
         Object = self.Game.Enemies.GetAll ()[0]
 
         Object.Move ('d')
