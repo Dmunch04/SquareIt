@@ -1,5 +1,6 @@
 import json
 
+from Objects import Notification as Notif
 from Modding import Mod as ModObject
 
 class Loader:
@@ -92,14 +93,11 @@ class Loader:
 
                     Notifications = GameSettings.get ('Notifications', [])
                     if Notifications:
-                        for Notification in Notifications:
-                            Text = Notification.get ('Text', 'None')
-                            Duration = Notification.get ('Duration', 1)
+                        for NotificationItem in Notifications:
+                            Text = NotificationItem.get ('Text', 'None')
+                            Duration = NotificationItem.get ('Duration', 1)
 
-                            NotificationsToAdd[str (len (NotificationsToAdd) + 1)] = {
-                                'Text': Text,
-                                'Duration': Duration
-                            }
+                            NotificationsToAdd[str (len (NotificationsToAdd) + 1)] = Notif (Text, Duration)
 
                 PlayerSettings = Data.get ('Player', {})
                 if PlayerSettings:
@@ -131,7 +129,7 @@ class Loader:
                     # Text
                     f'{Mod} has been loaded!',
                     # Duration (Frames)
-                    5000
+                    500
                 )
 
                 for Notification in NotificationsToAdd:
@@ -139,7 +137,7 @@ class Loader:
 
                     _Object.AddNotification (
                         # Text
-                        str (Notification['Text']),
+                        str (Notification.Text),
                         # Duration (Frames)
-                        int (Notification['Duration'])
+                        int (Notification.Duration)
                     )

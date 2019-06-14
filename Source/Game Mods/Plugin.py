@@ -3,11 +3,16 @@ class MyPlugin:
         self.Game = Game
 
     def EventInit (self):
-        self.Game.Window.UpdateWidth (1280)
+        self.Game.Window.SetWidth (1280)
 
         #self.Game.DoRestart = False
 
         print ('Init')
+
+    def EventFrame (self):
+        Object = self.Game.Enemies.GetAll ()[0]
+
+        Object.Move ('d')
 
     def EventStart (self):
         print ('Start', self.Game.Window.Width)
@@ -29,13 +34,14 @@ class MyPlugin:
     def EventCollision (self, _Object):
         if _Object.IsObstacle:
             # It's an enemy/bomb
-            pass
+            self.Game.AddNotification ('Hit obstacle!', 100, _Priority = True)
 
         else:
             # It's a wall
-            pass
+            self.Game.AddNotification ('Hit wall!', 100, _Priority = True)
 
-        print (f'HIT: {_Object}!')
+        #print (f'HIT: {_Object}!')
+        print (f'We hit: {_Object.Name} @ ({_Object.X}, {_Object.Y})')
 
     def EventEnd (self):
         print ('End')

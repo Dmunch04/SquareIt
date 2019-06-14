@@ -31,12 +31,12 @@
       "Notifications": [
         {
           "Text": "Hello, World!",
-          "Duration": 5000
+          "Duration": 500
         },
 
         {
           "Text": "Ya Yeet",
-          "Duration": 5000
+          "Duration": 500
         }
       ]
     },

@@ -16,14 +16,14 @@ class Window:
         self.FontRegular = pygame.font.Font ('Assets/Fonts/Roboto-Regular.ttf', 18)
         self.FontColor = (30, 30, 30)
 
-    def UpdateTitle (self, _Title):
+    def SetTitle (self, _Title):
         """ Update the windows title """
 
         self.Title = str (_Title)
 
         pygame.display.set_caption (self.Title)
 
-    def UpdateSize (self, _Width, _Height):
+    def SetSize (self, _Width, _Height):
         """ Update the windows width and height """
 
         self.Width = int (_Width)
@@ -31,14 +31,14 @@ class Window:
 
         self.Window = pygame.display.set_mode ((self.Width, self.Height))
 
-    def UpdateWidth (self, _Width):
+    def SetWidth (self, _Width):
         """ Update the windows width """
 
         self.Width = int (_Width)
 
         self.Window = pygame.display.set_mode ((self.Width, self.Height))
 
-    def UpdateHeight (self, _Height):
+    def SetHeight (self, _Height):
         """ Update the windows height """
 
         self.Height = int (_Height)
@@ -60,6 +60,20 @@ class Window:
                 )
             )
 
+    def DrawText (self, _Screen, _Text, _Position):
+        """ Draws text to the screen """
+
+        Text = self.FontRegular.render (
+            str (_Text),
+            True,
+            self.FontColor
+        )
+
+        _Screen.blit (
+            Text,
+            tuple (_Position)
+        )
+
     def DrawNotification (self, _Object):
         """ Show the first notification """
 
@@ -69,23 +83,23 @@ class Window:
         ID = Notification
         Notification = _Object.Notifications[Notification]
 
-        if Notification['Duration'] <= 0:
+        if Notification.Duration <= 0:
             del _Object.Notifications[ID]
 
             return
 
-        Text = self.FontRegular.render (
-            Notification["Text"],
-            True,
-            self.FontColor
+        Text = Notification.Text
+
+        self.DrawText (
+            _Object.Screen,
+            Notification.Text,
+            (
+                self.Width - (len (Text) * 10),
+                self.Height - 50
+            )
         )
 
-        _Object.Screen.blit (
-            Text,
-            (self.Width - (len (Notification['Text']) * 10), self.Height - 50)
-        )
-
-        _Object.Notifications[ID]['Duration'] -= 1
+        _Object.Notifications[ID].Duration -= 1
 
     def Run (self):
         return self.Window

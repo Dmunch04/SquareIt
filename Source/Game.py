@@ -9,8 +9,8 @@ import importlib
 # File imports
 from UI import Window
 from Utilities import Collection
-from Objects import Bomb, Enemy, Player, Wall
 from Modding import Loader, CallPluginFunctions
+from Objects import Bomb, Enemy, Player, Wall, Notification
 from Helpers import CheckWallCollision, CheckCollisions, CheckCollision
 
 class Game:
@@ -96,7 +96,8 @@ class Game:
             'EventCollision',
             'EventGameOver',
             'EventRestart',
-            'EventFrame'
+            'EventFrame',
+            'EventFixedFrame'
         ]
 
         self.Notifications = {}
@@ -154,17 +155,14 @@ class Game:
         if 'EventInit' in dir (_Class):
             _Class.EventInit ()
 
-    def AddNotification (self, _Text, _Duration, _Priority = False):
+    def AddNotification (self, _Text, _Duration = 500, _Priority = False):
         """ Add a notification the the waiting list """
 
         # Check if it's a priority notification
         if _Priority:
             # Create a new notification
             Notifications = {}
-            Notifications[str (len (self.Notifications) + 1)] = {
-                'Text': _Text,
-                'Duration': _Duration
-            }
+            Notifications[_Text] = Notification (_Text, _Duration)
 
             # This makes the new notification as the number one notification
             Notifications.update (self.Notifications)
@@ -175,10 +173,7 @@ class Game:
         # It's not ..
         else:
             # Add a new notification to the notification list
-            self.Notifications[str (len (self.Notifications) + 1)] = {
-                'Text': _Text,
-                'Duration': _Duration
-            }
+            self.Notifications[str (len (self.Notifications) + 1)] = Notification (_Text, _Duration)
 
     def AddEnemy (self, _X, _Y, _Width, _Height):
         """ Add an enemy to the screen """
@@ -225,12 +220,16 @@ class Game:
 
         # Initialize the window
         self.Screen = self.Window.Run ()
+        DeltaTime = pygame.time.Clock ()
 
         # Call the start event in all plugins
         CallPluginFunctions (self.Plugins, 'EventStart')
 
         # Keep doing this, while the game is still running
         while self.Run:
+            # Set the tick to 60
+            DeltaTime.tick (60)
+
             # Loop through all pygames events
             for Event in pygame.event.get ():
                 # If we've hit the close button ...
@@ -318,6 +317,22 @@ class Game:
             # Draw all objects
             self.Window.DrawObjects (self.Screen, self.Objects)
 
+            # Define the FPS variable
+            FPS = str (DeltaTime.get_fps ())
+            # This will make sure the FPS maximum has 1 decimal
+            FPSFixed = '{:.1f}'.format (float (FPS))
+
+            # Draw the FPS
+            self.Window.DrawText (
+                self.Screen,
+                FPSFixed,
+                (
+                    self.Window.Width - 50,
+                    20
+                )
+            )
+
+            # Check if our notifications is not empty
             if self.Notifications:
                 # Draw the first notification to the screen
                 self.Window.DrawNotification (self)
