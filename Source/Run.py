@@ -2,7 +2,7 @@ import Game
 
 def Run ():
     # Initialze the game object
-    TestGame = Game.Game (Debug = True)
+    TestGame = Game.Game ()
 
     # Add game objects
     # -- X, Y, Width, Height

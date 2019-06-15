@@ -1,3 +1,7 @@
+# Maybe add a while loop at line 333, so the player can get out of enemies,
+# if they get stuck inside!
+
+
 # We do this here, to disable the annoying pygame welcome message
 import contextlib
 with contextlib.redirect_stdout (None):
@@ -5,7 +9,6 @@ with contextlib.redirect_stdout (None):
 
 # Module imports
 import importlib
-from DavesLogger import Logs
 
 # File imports
 from UI import Window
@@ -15,76 +18,15 @@ from Objects import Bomb, Enemy, Player, Wall, Notification
 from Helpers import CheckWallCollision, CheckCollisions, CheckCollision
 
 class Game:
-    """
-        The main class of SquareIt. This class is the core
-
-        Attributes:
-            - Window -> Window Object:
-                This attribute holds all the information of the window, and
-                can only be tweaked in the init.
-
-            - Player -> Player Object:
-                This is the player object. It holds things such as x, y, width
-                and height for the player. This can be changed anytime.
-
-            - DoRestart -> Bool:
-                This is a bool for whether the game should do a graphics restart
-                when the player hits an object.
-
-            - The rest of the attributes are not suggested you do anything with.
-            You can simply use this classes functions to update them.
-
-
-        Functions:
-            - Restart -> None:
-                Restarts the game graphics.
-
-            - LoadConfig -> Path:
-                Loads a JSON config file. You need to put the full relative path
-                to the file!
-
-            - LoadExtension -> Path:
-                Loads the extension at the path. Please not, that / should be .
-                and you shouldn't put the .py file ending!
-
-            - AddNotification -> Text, Duration (Frames), Priority = False:
-                Adds a notification to the notification queue. When the notification
-                is at the top of the queue, it will be displayed in the lower
-                right corner. If you set priority to true, then it will be added
-                as number one in the queue, and will therefor be displayed right
-                away.
-
-            - AddEnemy -> X, Y, Width, Height:
-                Adds a new enemy to the screen, with the given position and size.
-
-            - RemoveEnemy -> ID:
-                Removes an enemy from the screen. The ID is the number of the enemy.
-                So if you've added 3 enemies, and wanna remove number 3, then the ID
-                is 3.
-
-            - AddBomb -> X, Y, Width, Height:
-                Adds a new bomb to the screen, with the given position and size.
-
-            - RemoveBomb -> ID:
-                Removes an bomb from the screen. The ID is the number of the bomb.
-                So if you've added 7 bombs, and wanna remove number 4, then the ID
-                is 4.
-
-            - Start -> None:
-                This starts the game, and makes the window open. This is also in
-                the beginning of this function, the start event will be sent to
-                the plugins.
-    """
-
-    def __init__ (self, Debug = False, DoRestart = True, Tick = 60):
+    def __init__ (self, DoRestart = True, Tick = 60):
         self.Window = Window ('Game', 800, 600)
         self.ModLoader = Loader ()
+
         self.Player = Player (0, 0, 50, 50)
         self.Enemies = Collection (Enemy)
         self.Bombs = Collection (Bomb)
         self.Objects = []
 
-        self.Debug = Debug
         self.Screen = None
         self.Run = True
         self.DoRestart = DoRestart
@@ -123,11 +65,6 @@ class Game:
 
         # Call the restart event in all plugins
         CallPluginFunctions (self.Plugins, 'EventRestart')
-
-        # Check if we wanna debug
-        if self.Debug:
-            # Then send a message to the console
-            Logs.Debug ('Graphics reset!')
 
     def LoadConfig (self, _Path):
         """ Loads a JSON config file """
@@ -234,11 +171,6 @@ class Game:
         # Call the start event in all plugins
         CallPluginFunctions (self.Plugins, 'EventStart')
 
-        # Check if we wanna debug
-        if self.Debug:
-            # Then send a message to the console
-            Logs.Server ('Game window is initialized!')
-
         # Create the time and frame time variable
         Time = 0
         FrameTime = self.Tick // 2
@@ -334,11 +266,6 @@ class Game:
                         # Call the collision event in all plugins, for this object
                         CallPluginFunctions (self.Plugins, 'EventCollision', Object)
 
-                        # Check if we wanna debug
-                        if self.Debug:
-                            # Then send a message to the console
-                            Logs.Debug (f'Collision; {Object.Name}!')
-
                         # Set the players x and y, back to what it was before doing movement
                         self.Player.X = OldX
                         self.Player.Y = OldY
@@ -385,15 +312,23 @@ class Game:
             Objects = self.Objects
             Objects.remove (self.Player)
 
+            # Check if we've hit a bad thing
+            IsHit, Object = CheckCollisions (self.Player, Objects)
+
+            # Did we hit anything?
+            if IsHit:
+                # Call the collision event in all plugins, for this object
+                CallPluginFunctions (self.Plugins, 'EventCollision', Object)
+
+                # Set this variable to true, so we know later on we hit something
+                DidCollide = True
+                # Set the object variable to the object we hit
+                CollidedObject = Object
+
             # We've hit a bad thing!
             if DidCollide:
                 # Check if we wanna do a restart
                 if self.DoRestart:
-                    # Check if we wanna debug
-                    if self.Debug:
-                        # Then send a message to the console
-                        Logs.Debug ('Player died')
-
                     # Call the death event in all plugins
                     CallPluginFunctions (self.Plugins, 'EventGameOver')
 
