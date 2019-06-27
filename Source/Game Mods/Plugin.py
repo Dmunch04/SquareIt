@@ -7,7 +7,7 @@ class MyPlugin:
 
         self.Game.DoRestart = False
 
-        print ('Init')
+        print ('MyPlugin [v1.0.0] has been loaded!')
 
     def EventFrame (self):
         """
@@ -30,6 +30,11 @@ class MyPlugin:
             1000
         )
 
+        Object = self.Game.Enemies.GetAll ()[1]
+
+        for I in range (5):
+            Object.Move ('r')
+
     def EventGameOver (self):
         #print ('Death')
 
@@ -49,7 +54,7 @@ class MyPlugin:
             self.Game.AddNotification ('Hit wall!', 100, _Priority = True)
 
         #print (f'HIT: {_Object}!')
-        print (f'We hit: {_Object.Name} @ ({_Object.X}, {_Object.Y})')
+        #print (f'We hit: {_Object.Name} @ ({_Object.X}, {_Object.Y})')
 
     def EventEnd (self):
         print ('End')

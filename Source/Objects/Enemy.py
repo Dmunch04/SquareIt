@@ -23,7 +23,8 @@ class Enemy:
     def Move (self, _Direction):
         """ Moves the object in the given direction """
 
-        Direction = str (_Direction[0].lower ())
+        # Get the direction letter
+        Direction = str (_Direction[0]).lower ()
 
         # Left
         if Direction == 'l':

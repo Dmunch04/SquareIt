@@ -1,7 +1,3 @@
-# Maybe add a while loop at line 333, so the player can get out of enemies,
-# if they get stuck inside!
-
-
 # We do this here, to disable the annoying pygame welcome message
 import contextlib
 with contextlib.redirect_stdout (None):
@@ -12,7 +8,7 @@ import importlib
 
 # File imports
 from UI import Window
-from Utilities import Collection
+from Utilities import Collection, CheckInput
 from Modding import Loader, CallPluginFunctions
 from Objects import Bomb, Enemy, Player, Wall, Notification
 from Helpers import CheckWallCollision, CheckCollisions, CheckCollision
@@ -173,7 +169,7 @@ class Game:
 
         # Create the time and frame time variable
         Time = 0
-        FrameTime = self.Tick // 2
+        FrameTime = int (self.Tick // 2)
 
         # Keep doing this, while the game is still running
         while self.Run:
@@ -185,7 +181,7 @@ class Game:
 
             # Check if time and frame time are the same
             if Time == FrameTime:
-                # Call the fixed frame event in all plugins, for this wall
+                # Call the fixed frame event in all plugins
                 CallPluginFunctions (self.Plugins, 'EventFixedFrame')
 
                 # Reset the time and frame time
@@ -209,54 +205,8 @@ class Game:
                     OldX = self.Player.X
                     OldY = self.Player.Y
 
-                    # Move left
-                    if Event.key == pygame.K_LEFT:
-                        self.Player.X -= self.Player.Speed
-
-                        # Make sure we don't get out of the screen
-                        if self.Player.X < 0:
-                            # Call the collision event in all plugins, for this wall
-                            CallPluginFunctions (self.Plugins, 'EventCollision', Wall ('Left Wall', self.Window.Height))
-
-                            # Set the player's X to 0
-                            self.Player.X = 0
-
-                    # Move right
-                    elif Event.key == pygame.K_RIGHT:
-                        self.Player.X += self.Player.Speed
-
-                        # Make sure we don't get out of the screen
-                        if self.Player.X > self.Window.Width - self.Player.Width:
-                            # Call the collision event in all plugins, for this wall
-                            CallPluginFunctions (self.Plugins, 'EventCollision', Wall ('Right Wall', self.Window.Height))
-
-                            # Set the player's X to the max width
-                            self.Player.X = self.Window.Width - self.Player.Width
-
-                    # Move up
-                    elif Event.key == pygame.K_UP:
-                        # Call the collision event in all plugins, for this wall
-                        self.Player.Y -= self.Player.Speed
-
-                        # Make sure we don't get out of the screen
-                        if self.Player.Y < 0:
-                            # Call the collision event in all plugins, for this wall
-                            CallPluginFunctions (self.Plugins, 'EventCollision', Wall ('Top Wall', self.Window.Width))
-
-                            # Set the player's Y to 0
-                            self.Player.Y = 0
-
-                    # Move up
-                    elif Event.key == pygame.K_DOWN:
-                        self.Player.Y += self.Player.Speed
-
-                        # Make sure we don't get out of the screen
-                        if self.Player.Y > self.Window.Height - self.Player.Height:
-                            # Call the collision event in all plugins, for this wall
-                            CallPluginFunctions (self.Plugins, 'EventCollision', Wall ('Bottom Wall', self.Window.Width))
-
-                            # Set the player's Y to the max height
-                            self.Player.Y = self.Window.Height - self.Player.Height
+                    # Call this function to handle movement
+                    CheckInput (Event, self.Player, self.Window, self.Plugins)
 
                     # Check if we've hit a bad thing
                     IsHit, Object = CheckCollisions (self.Player, self.Objects)
@@ -266,9 +216,19 @@ class Game:
                         # Call the collision event in all plugins, for this object
                         CallPluginFunctions (self.Plugins, 'EventCollision', Object)
 
-                        # Set the players x and y, back to what it was before doing movement
-                        self.Player.X = OldX
-                        self.Player.Y = OldY
+                        if Object.X != Object.OriginalX or Object.Y != Object.OriginalY:
+                            IsHit = CheckCollision (self.Player, Object)
+
+                            if IsHit:
+                                continue
+
+                            elif self.Player.X == Object.X or self.Player.Y == Object.Y:
+                                continue
+
+                        else:
+                            # Set the players x and y, back to what it was before doing movement
+                            self.Player.X = OldX
+                            self.Player.Y = OldY
 
                         # Set this variable to true, so we know later on we hit something
                         DidCollide = True
